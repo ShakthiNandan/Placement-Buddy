@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Buddy - Email Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Placement Buddy
+            </a>
+            <div class="navbar-nav ms-auto">
+                <button class="btn btn-success me-2" id="fetchEmailsBtn">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Fetch Emails
+                </button>
+                <button class="btn btn-outline-light" id="exportBtn">
+                    <i class="fas fa-download me-1"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar Filters -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search emails...">
+                                <button class="btn btn-outline-primary" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Company Filter -->
+                        <div class="mb-3">
+                            <label class="form-label">Company</label>
+                            <input type="text" class="form-control" id="companyFilter" placeholder="Filter by company">
+                        </div>
+
+                        <!-- Date Range -->
+                        <div class="mb-3">
+                            <label class="form-label">Date From</label>
+                            <input type="date" class="form-control" id="dateFromFilter">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date To</label>
+                            <input type="date" class="form-control" id="dateToFilter">
+                        </div>
+
+                        <!-- Placement Only -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="placementOnlyFilter">
+                                <label class="form-check-label" for="placementOnlyFilter">
+                                    Placement emails only
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+                        <button class="btn btn-outline-secondary w-100 mt-2" id="clearFiltersBtn">Clear Filters</button>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar me-2"></i>Statistics</h5>
+                    </div>
+                    <div class="card-body" id="statisticsCard">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Summary Cards -->
+                <div class="row mb-4" id="summaryCards">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6>Total Emails</h6>
+                                        <h3 id="totalEmailsCount">-</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-envelope fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6>Placement Emails</h6>
+                                        <h3 id="placementEmailsCount">-</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-briefcase fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6>Companies</h6>
+                                        <h3 id="companiesCount">-</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-building fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6>Avg Sentiment</h6>
+                                        <h3 id="avgSentimentScore">-</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-smile fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email List -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5><i class="fas fa-list me-2"></i>Emails</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" id="refreshBtn">
+                                <i class="fas fa-refresh me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="emailsContainer">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Detail Modal -->
+    <div class="modal fade" id="emailDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Email Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="emailDetailContent">
+                    <!-- Email details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <p class="text-muted">Current filters will be applied to the export.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmExportBtn">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p id="loadingMessage">Processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
